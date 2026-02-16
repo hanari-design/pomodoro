@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pomodoro Timer</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      defer
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Poppins", sans-serif;
+        transition: background 0.5s ease;
+        padding: 20px;
+      }
+
+      body.work-mode {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+
+      body.short-mode {
+        background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+      }
+
+      body.long-mode {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      }
+
+      .card {
+        border: none;
+        border-radius: 30px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        overflow: hidden;
+      }
+
+      .card-header {
+        background: rgba(255, 255, 255, 0.95);
+        border: none;
+        padding: 25px;
+        border-radius: 30px 30px 0 0;
+      }
+
+      .card-header h3 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 28px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .card-body {
+        background: rgba(255, 255, 255, 0.98);
+        padding: 40px 30px;
+      }
+
+      .btn-group {
+        gap: 12px !important;
+      }
+
+      .mode-btn {
+        font-weight: 600;
+        padding: 12px 24px;
+        border-radius: 50px !important;
+        border: 2px solid transparent !important;
+        background: #f8f9fa;
+        color: #495057;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .mode-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .mode-btn.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      body.short-mode .mode-btn.active {
+        background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+        box-shadow: 0 6px 20px rgba(67, 206, 162, 0.4);
+      }
+
+      body.long-mode .mode-btn.active {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        box-shadow: 0 6px 20px rgba(240, 147, 251, 0.4);
+      }
+
+      .timer-container {
+        position: relative;
+        width: 250px;
+        height: 250px;
+        margin: 30px auto;
+      }
+
+      svg {
+        transform: rotate(-90deg);
+        filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+      }
+
+      circle {
+        fill: none;
+        stroke-width: 12;
+        stroke-linecap: round;
+      }
+
+      .progress-bg {
+        stroke: #f0f0f0;
+      }
+
+      .progress-ring {
+        stroke: url(#gradient);
+        transition: stroke-dashoffset 1s linear;
+      }
+
+      .time-text {
+        color: #2d3748;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 48px;
+        font-weight: 700;
+        letter-spacing: -1px;
+      }
+
+      .control-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+      }
+
+      .control-btn {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: none;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .control-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      .control-btn:active {
+        transform: translateY(-1px);
+      }
+
+      .control-btn.primary {
+        width: 80px;
+        height: 80px;
+        font-size: 24px;
+      }
+
+      hr {
+        margin: 35px 0 25px;
+        opacity: 0.1;
+      }
+
+      h6 {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 20px;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .form-control {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 600;
+        text-align: center;
+        transition: all 0.3s ease;
+        font-size: 16px;
+      }
+
+      .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      small {
+        display: block;
+        margin-top: 8px;
+        color: #718096;
+        font-weight: 500;
+        font-size: 12px;
+      }
+
+      .apply-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+        padding: 14px;
+        border-radius: 12px;
+        border: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      }
+
+      .apply-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+      }
+
+      .apply-btn:active {
+        transform: translateY(0);
+      }
+
+      .fade-mode {
+        animation: fadeIn 0.4s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .session-info {
+        text-align: center;
+        margin-top: 20px;
+        padding: 15px;
+        background: linear-gradient(
+          135deg,
+          rgba(102, 126, 234, 0.1),
+          rgba(118, 75, 162, 0.1)
+        );
+        border-radius: 15px;
+      }
+
+      .session-info h5 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #667eea;
+        margin-bottom: 8px;
+      }
+
+      .session-info .count {
+        font-size: 32px;
+        font-weight: 700;
+        color: #2d3748;
+      }
+
+      /* Responsive */
+      @media (max-width: 576px) {
+        .timer-container {
+          width: 200px;
+          height: 200px;
+        }
+
+        .time-text {
+          font-size: 36px;
+        }
+
+        .control-btn.primary {
+          width: 70px;
+          height: 70px;
+        }
+      }
+    </style>
+  </head>
+  <body class="work-mode">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="text-center">🍅 Pomodoro Timer</h3>
+            </div>
+            <div class="card-body">
+              <div class="btn-group my-3 d-flex justify-content-center">
+                <button class="btn mode-btn active" data-mode="work">
+                  Work
+                </button>
+                <button class="btn mode-btn" data-mode="short">
+                  Short Break
+                </button>
+                <button class="btn mode-btn" data-mode="long">
+                  Long Break
+                </button>
+              </div>
+
+              <div class="timer-container fade-mode">
+                <svg width="250" height="250">
+                  <defs>
+                    <linearGradient
+                      id="gradient"
+                      x1="0%"
+                      y1="0%"
+                      x2="100%"
+                      y2="100%"
+                    >
+                      <stop
+                        offset="0%"
+                        style="stop-color: #667eea; stop-opacity: 1"
+                      />
+                      <stop
+                        offset="100%"
+                        style="stop-color: #764ba2; stop-opacity: 1"
+                      />
+                    </linearGradient>
+                  </defs>
+                  <circle
+                    class="progress-bg"
+                    cx="125"
+                    cy="125"
+                    r="110"
+                  ></circle>
+                  <circle
+                    class="progress-ring"
+                    cx="125"
+                    cy="125"
+                    r="110"
+                    stroke-dasharray="691"
+                    stroke-dashoffset="0"
+                  ></circle>
+                </svg>
+                <div id="time" class="time-text">25:00</div>
+              </div>
+
+              <div class="control-buttons">
+                <button class="control-btn" id="resetBtn" title="Reset">
+                  ↻
+                </button>
+                <button class="control-btn primary" id="startBtn" title="Start">
+                  ▶
+                </button>
+                <button class="control-btn" id="skipBtn" title="Skip">
+                  ⏭
+                </button>
+              </div>
+
+              <div class="session-info">
+                <h5>SESSIONS COMPLETED</h5>
+                <div class="count" id="sessionCount">0</div>
+              </div>
+
+              <hr />
+              <h6>Customize Duration</h6>
+              <div class="row g-3">
+                <div class="col-4">
+                  <input
+                    type="number"
+                    id="workInput"
+                    class="form-control"
+                    value="25"
+                    min="1"
+                    max="60"
+                  />
+                  <small>Work</small>
+                </div>
+                <div class="col-4">
+                  <input
+                    type="number"
+                    id="shortInput"
+                    class="form-control"
+                    value="5"
+                    min="1"
+                    max="30"
+                  />
+                  <small>Short</small>
+                </div>
+                <div class="col-4">
+                  <input
+                    type="number"
+                    id="longInput"
+                    class="form-control"
+                    value="15"
+                    min="1"
+                    max="60"
+                  />
+                  <small>Long</small>
+                </div>
+              </div>
+              <button class="btn apply-btn mt-3 w-100" id="applyBtn">
+                Apply Settings
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentMode = "work";
+      let isRunning = false;
+      let timeLeft = 25 * 60;
+      let totalTime = 25 * 60;
+      let timerInterval;
+      let sessions = 0;
+
+      const timeDisplay = document.getElementById("time");
+      const startBtn = document.getElementById("startBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const skipBtn = document.getElementById("skipBtn");
+      const progressRing = document.querySelector(".progress-ring");
+      const sessionCount = document.getElementById("sessionCount");
+      const modeBtns = document.querySelectorAll(".mode-btn");
+
+      const durations = {
+        work: () => parseInt(document.getElementById("workInput").value) * 60,
+        short: () => parseInt(document.getElementById("shortInput").value) * 60,
+        long: () => parseInt(document.getElementById("longInput").value) * 60,
+      };
+
+      function updateDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timeDisplay.textContent = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+
+        const offset = 691 - (timeLeft / totalTime) * 691;
+        progressRing.style.strokeDashoffset = offset;
+      }
+
+      function startTimer() {
+        if (isRunning) {
+          clearInterval(timerInterval);
+          isRunning = false;
+          startBtn.textContent = "▶";
+        } else {
+          isRunning = true;
+          startBtn.textContent = "⏸";
+          timerInterval = setInterval(() => {
+            timeLeft--;
+            updateDisplay();
+
+            if (timeLeft <= 0) {
+              clearInterval(timerInterval);
+              isRunning = false;
+              startBtn.textContent = "▶";
+
+              if (currentMode === "work") {
+                sessions++;
+                sessionCount.textContent = sessions;
+              }
+
+              // Play notification sound (browser notification)
+              if (
+                "Notification" in window &&
+                Notification.permission === "granted"
+              ) {
+                new Notification("Pomodoro Timer", {
+                  body: `${currentMode === "work" ? "Work" : "Break"} session completed!`,
+                  icon: "🍅",
+                });
+              }
+
+              // Auto-switch to break
+              if (currentMode === "work") {
+                switchMode(sessions % 4 === 0 ? "long" : "short");
+              }
+            }
+          }, 1000);
+        }
+      }
+
+      function resetTimer() {
+        clearInterval(timerInterval);
+        isRunning = false;
+        startBtn.textContent = "▶";
+        timeLeft = durations[currentMode]();
+        totalTime = timeLeft;
+        updateDisplay();
+      }
+
+      function skipTimer() {
+        if (currentMode === "work") {
+          switchMode(sessions % 4 === 0 ? "long" : "short");
+        } else {
+          switchMode("work");
+        }
+      }
+
+      function switchMode(mode) {
+        currentMode = mode;
+        document.body.className = `${mode}-mode`;
+
+        modeBtns.forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.mode === mode);
+        });
+
+        resetTimer();
+      }
+
+      startBtn.addEventListener("click", startTimer);
+      resetBtn.addEventListener("click", resetTimer);
+      skipBtn.addEventListener("click", skipTimer);
+
+      modeBtns.forEach((btn) => {
+        btn.addEventListener("click", () => switchMode(btn.dataset.mode));
+      });
+
+      // Apply custom durations
+      document.getElementById("applyBtn").addEventListener("click", () => {
+        // Stop the timer if running
+        if (isRunning) {
+          clearInterval(timerInterval);
+          isRunning = false;
+          startBtn.textContent = "▶";
+        }
+
+        // Update the current timer with new duration
+        timeLeft = durations[currentMode]();
+        totalTime = timeLeft;
+        updateDisplay();
+
+        // Visual feedback
+        const applyBtn = document.getElementById("applyBtn");
+        applyBtn.textContent = "✓ Applied!";
+        setTimeout(() => {
+          applyBtn.textContent = "Apply Settings";
+        }, 1500);
+      });
+
+      // Request notification permission
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+
+      updateDisplay();
+    </script>
+  </body>
+</html>
